@@ -116,9 +116,9 @@ export default function Home() {
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <h1 className={styles.title}>Voice AI Dashboard</h1>
+        <h1 className={styles.title}>Patient Management</h1>
         <p className={styles.subtitle}>
-          Phase 2 Verification Portal — Test the REST API backend endpoints for patient registration.
+          Securely manage and view patient records synced from your Voice AI.
         </p>
       </header>
 
