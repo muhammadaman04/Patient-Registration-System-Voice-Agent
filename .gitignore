@@ -23,8 +23,15 @@ ENV/
 
 # Environment files — NEVER commit real secrets
 .env
+.env.*
+!.env.example
+*.env
+*.env.*
+!*.env.example
 # (commit .env.example instead)
 
+# Implementation plans
+Voice_AI_Agent_Implementation_Plan.md
 # Supabase CLI
 .supabase/
 
