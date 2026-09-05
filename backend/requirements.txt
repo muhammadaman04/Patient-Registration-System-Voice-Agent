@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+pydantic[email]
+pydantic-settings
+supabase
+python-dotenv
+requests
+pytest
+httpx
