@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import styles from './page.module.css';
 
-// Use the environment variable, fallback to localhost if it's missing (for local dev without .env)
-const API_BASE = `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'}/patients`;
+// Strip trailing slash from env var if present to avoid double-slash 404s from FastAPI
+const baseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000').replace(/\/+$/, '');
+const API_BASE = `${baseUrl}/patients`;
 
 export default function Home() {
   const [patients, setPatients] = useState<any[]>([]);
@@ -31,6 +32,8 @@ export default function Home() {
       const json = await res.json();
       if (json.error) {
         setError(`Backend error: ${json.error.message}`);
+      } else if (json.detail) {
+        setError(`API Error: ${json.detail}`);
       } else {
         setPatients(json.data || []);
         setError('');
@@ -69,7 +72,9 @@ export default function Home() {
       if (json.error) {
         const fieldPrefix = json.error.field ? `[${json.error.field}] ` : '';
         setError(`${fieldPrefix}${json.error.message}`);
-      } else {
+      } else if (json.detail) {
+        setError(`API Error: ${json.detail}`);
+      } else if (json.data) {
         setSuccess(`✅ Patient ${json.data.first_name} ${json.data.last_name} registered successfully!`);
         setFormData({
           first_name: '',
@@ -83,6 +88,8 @@ export default function Home() {
           zip_code: '',
         });
         fetchPatients();
+      } else {
+        setError("Unexpected response format from server.");
       }
     } catch (err: any) {
       setError(`Network error: ${err.message}`);
