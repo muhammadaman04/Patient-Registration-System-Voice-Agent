@@ -55,3 +55,49 @@ npm install
 npm run dev
 ```
 *(Requires a `.env.local` file with `NEXT_PUBLIC_API_BASE_URL`)*
+
+---
+
+## Environment Variables
+
+### Backend (`backend/.env`)
+| Variable | Description |
+|---|---|
+| `SUPABASE_URL` | Your Supabase project URL |
+| `SUPABASE_SERVICE_KEY` | Supabase service role key (has full DB access) |
+| `VAPI_API_KEY` | Vapi API key for creating/updating the assistant |
+| `VAPI_ASSISTANT_ID` | ID of the existing Vapi assistant (populated after first run of setup script) |
+| `VAPI_SERVER_SECRET` | Secret header value Vapi sends on webhook calls — verified in `/webhooks/vapi` |
+| `PUBLIC_API_BASE_URL` | Publicly reachable base URL of this backend (e.g. Heroku URL or ngrok tunnel) |
+
+### Frontend (`frontend/.env.local`)
+| Variable | Description |
+|---|---|
+| `NEXT_PUBLIC_API_BASE_URL` | Base URL of the FastAPI backend (e.g. Heroku URL) |
+
+---
+
+## Tech Stack Justification
+
+| Component | Choice | Reason |
+|---|---|---|
+| **Telephony & LLM orchestration** | Vapi | Eliminates the need for a hand-rolled WebSocket audio pipeline, STT, and TTS stack. Vapi owns the real-time audio layer entirely, reducing the highest-risk part of the build to zero custom code. |
+| **LLM** | GPT-OSS 120B via Vapi | High-capability open model available directly through Vapi's provider keys. No additional API integration required. |
+| **Backend** | FastAPI + Python | Async-native, excellent Pydantic integration for strict input validation, clean OpenAPI docs auto-generated, and fast development velocity. |
+| **Database** | Supabase (PostgreSQL) | Managed Postgres with a generous free tier, built-in REST client, and SQL migrations. Soft-delete support out of the box via `deleted_at` column. |
+| **Frontend** | Next.js + React | App Router enables server/client component split; straightforward deployment on Vercel; TypeScript for type safety. |
+| **Hosting** | Heroku (backend) + Vercel (frontend) | Both have zero-config deploys from GitHub, free/low-cost tiers, and reliable uptime for review purposes. |
+
+---
+
+## Known Limitations & Trade-offs
+
+- **No call recording / transcript storage:** Call transcripts and audio are available in the Vapi dashboard but are not persisted to our own database. A production system would log transcripts to a `call_logs` table for audit purposes.
+
+- **No automated retry on `create_patient`:** The `backoffPlan` field was omitted from the `create_patient` apiRequest tool due to uncertain schema validation during development. If the POST fails transiently, the agent will relay the error to the caller and ask them to confirm again rather than silently retrying.
+
+- **Single-language support:** The voice agent operates in English only. The `preferred_language` field is collected and stored, but the agent does not dynamically switch the conversation language.
+
+- **No authentication on the REST API:** The `/patients` endpoints are protected only by CORS and the Supabase service key on the backend. A production deployment would add JWT-based auth or API key gating to prevent unauthorized access.
+
+- **No automated tests run in CI:** Tests exist in `backend/tests/` but there is no GitHub Actions workflow to run them automatically on each push.
