@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import styles from './page.module.css';
 
-const API_BASE = 'http://localhost:8000/patients';
+// Use the environment variable, fallback to localhost if it's missing (for local dev without .env)
+const API_BASE = `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'}/patients`;
 
 export default function Home() {
   const [patients, setPatients] = useState<any[]>([]);
